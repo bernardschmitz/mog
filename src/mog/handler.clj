@@ -38,25 +38,35 @@
   (take 20 (shuffle letter-pool)))
 
 
+(defn add-to-dict [dict word]
+  (let [w (apply str (sort word))
+        d (get dict w #{})]
+    (assoc dict w (conj d word))))
 
-; 
+
+(defn build-dict [words]
+  (reduce add-to-dict {} words))
 
 
+(defn subsets [n items]
+  (cond
+    (= n 0) '(())
+    (empty? items) '()
+    :else (concat (map
+                    #(cons (first items) %)
+                    (subsets (dec n) (rest items)))
+                    (subsets n (rest items)))))
 
-(defn add-to-trie [trie x]
-    (assoc-in trie x (merge (get-in trie x) {:val x :terminal true})))
 
-(defn in-trie? [trie x]
-    "Returns true if the value x exists in the specified trie."
-    (:terminal (get-in trie x) false))
+(defn find-word [n dict rack]
+  (reduce union
+    (filter (complement nil?) (map #(dict (apply str (sort %))) (subsets n rack)))))
 
-;(defn prefix-matches [trie prefix]
-;    "Returns a list of matches with the prefix specified in the trie specified."
-;    (map-filter :val (tree-seq map? vals (get-in trie prefix))))
 
-(defn build-trie [coll]
-    "Builds a trie over the values in the specified seq coll."
-    (reduce add-to-trie {} coll))
+(defn find-words [n dict rack]
+  (for [x (range 2 (inc n))] 
+    (find-word x dict rack)))
+
 
 (defn init-game-state [name]
   {:name name :hp 1000 :score 0 :fighting true :letters (random-letters)}) 
