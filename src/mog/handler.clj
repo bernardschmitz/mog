@@ -1,10 +1,17 @@
-(ns mog.handler
-  (:use compojure.core hiccup.core clojure.set clojure.java.io :as io)
-  (:require [compojure.handler :as handler]
-            [compojure.route :as route]))
 
-(def high-scores (ref [ {:name "bilbo" :score 98765 } { :name "xtro" :score 3737 } ]))
+(ns mog.handler
+  (:use compojure.core hiccup.core clojure.set)
+  (:require [compojure.handler :as handler]
+            [compojure.route :as route]
+            [clojure.java.io :as io]))
+
+
+(def high-scores (ref [ {:name "Bilbo" :score 98765 } { :name "Xtro" :score 3737 } ]))
 (def top-score ((first @high-scores) :score))
+
+(def monsters [
+               { :name "Goon" :hp 1000 }
+               ])
 
 (def letters (seq "abcdefghijklmnopqrstuvwxyz"))
 (def vowels [ \a \e \i \o \u ])
@@ -26,13 +33,20 @@
 
  
 (defn load-words [fname]
-  (with-open [r (reader fname)]
+  (with-open [r (io/reader fname)]
     (doall (line-seq r))))
+
 
 (def words (load-words "game-words"))
 
+
 (defn score-word [word]
    (reduce + (map letter-scores word)))
+
+
+(defn valid-word? [word]
+  (some #(= word %) words))
+
 
 (defn random-letters [] 
   (take 20 (shuffle letter-pool)))
@@ -46,6 +60,9 @@
 
 (defn build-dict [words]
   (reduce add-to-dict {} words))
+
+
+(def dict (build-dict words))
 
 
 (defn subsets [n items]
@@ -64,27 +81,45 @@
 
 
 (defn find-words [n dict rack]
-  (for [x (range 2 (inc n))] 
-    (find-word x dict rack)))
+  (reduce union 
+    (for [x (range 2 (inc n))] 
+      (find-word x dict rack))))
+
+
+(defn next-monster []
+  (rand-nth monsters))
 
 
 (defn init-game-state [name]
-  {:name name :hp 1000 :score 0 :fighting true :letters (random-letters)}) 
+  {:name name :hp 1000 :score 0 :fighting true :rack (random-letters) :foe (next-monster) }) 
+
 
 (defn login-form []
-  (html [:p "Name: "] [:form {:action "/login"}  [:input {:type "text" :name "name"}] [:input {:type "submit"}]]))
+  (html [:p "Name: "] 
+        [:form {:action "/login"}  
+          [:input {:type "text" :name "name"}] 
+          [:input {:type "submit"}]]))
+
 
 (defn login [{{:keys [name]} :params session :session :as req}]
   (prn req)
   {:body (html [:a {:href "/"} "continue"])
    :session (assoc session :game-state (init-game-state name))}) 
 
-(defn render [{{{:keys [letters hp name score] } :game-state} :session :as req}]
-  (html [:p "High Score: " top-score] [:br] [:br] [:br] [:p "Score: " score] [:br] [:br]
+
+(defn render [{{{:keys [foe rack hp name score] } :game-state} :session :as req}]
+  (html [:p "High Score: " top-score] [:br] [:br] [:p "Score: " score] [:br] [:br]
+        [:br]
         [:p "Name: " name]
         [:p "HP: " hp]
-        [:p "Letters: " (map str letters)]
+        [:br]
+        [:p "Foe: " (:name foe)]
+        [:p "HP: " (:hp foe)]
+        [:br]
+        [:p "Letters: " [:font {:size "20px"} (map #(str " " % " ") (sort rack))]]
         ))
+
+
 
 (defn main-page [{{{:keys [fighting]} :game-state} :session :as req}]
   (prn req)
@@ -98,6 +133,7 @@
   (GET "/login" [] login)
   (route/resources "/")
   (route/not-found "Not Found"))
+
 
 (def app
   (handler/site app-routes))
