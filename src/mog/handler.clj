@@ -52,6 +52,22 @@
   (take 20 (shuffle letter-pool)))
 
 
+(defn remove-from-rack [rack letter]
+  (let [[h t] (split-with (partial not= letter) rack)]
+    (concat h (rest t))))
+
+
+(defn letter-in-rack [rack letter]
+  (some #{letter} rack))
+
+
+(defn word-in-rack [rack word]
+  (let [letter (first word)]
+    (prn letter)
+    (when (letter-in-rack rack letter)
+      (word-in-rack (remove-from-rack rack letter) (rest word)))))
+
+
 (defn add-to-dict [dict word]
   (let [w (apply str (sort word))
         d (get dict w #{})]
