@@ -1,7 +1,8 @@
 
 (ns mog.handler
-  (:use compojure.core hiccup.core clojure.set)
+  (:use compojure.core hiccup.core clojure.set ring.util.response)
   (:require [compojure.handler :as handler]
+            [compojure.route :as route]
             [compojure.route :as route]
             [clojure.java.io :as io]))
 
@@ -129,7 +130,7 @@
    :session (assoc session :game-state (init-game-state name))}) 
 
 
-(defn render [{{{:keys [foe rack hp name score] } :game-state} :session :as req}]
+(defn render-main [{{{:keys [foe rack hp name score] } :game-state} :session :as req}]
   (html [:p "High Score: " top-score] [:br] [:br] [:p "Score: " score] [:br] [:br]
         [:br]
         [:p "Name: " name]
@@ -139,20 +140,45 @@
         [:p "HP: " (:hp foe)]
         [:br]
         [:p "Letters: " [:font {:size "20px"} (map #(str " " % " ") (sort rack))]]
+        [:form {:action "/word"}  
+          [:input {:type "text" :name "word"}] 
+          [:input {:type "submit"}]]
         ))
 
 
+(defn play-word [{{:keys [word]} :params {{:keys [rack] :as game-state} :game-state} :session :as req}]
+  (prn word)
+  (prn "in rack" (word-in-rack? rack word))
+  (prn "valid" (valid-word? word))
+  (prn "rack" rack)
+  (prn "sess" session)
+  (prn "gs" game-state)
 
-(defn main-page [{{{:keys [fighting]} :game-state} :session :as req}]
+  (if (word-in-rack? rack word)
+    (if (valid-word? word)
+      (let [k (->
+        (response (render-main req))
+        (assoc :session { :game-state (assoc game-state :rack (remove-word-from-rack rack word))}))]
+        (prn k)
+        k)
+;      {:body (render req)
+;       :session { :game-state (assoc game-state :rack (remove-word-from-rack rack word)) }}
+      {:body "invalid word"})
+    {:body "wrong letters"}))
+
+
+(defn main-page [{{{:keys [fighting]} :game-state :as game-state} :session :as req}]
   (prn req)
   (if fighting 
-      (render req)
+      (-> (response (render-main req)) 
+        (assoc :session { :game-state game-state }))
       (login-form)))
 
 
 (defroutes app-routes
   (GET "/" [] main-page)
   (GET "/login" [] login)
+  (GET "/word" [] play-word)
   (route/resources "/")
   (route/not-found "Not Found"))
 
