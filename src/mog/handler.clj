@@ -126,8 +126,20 @@
 
 (defn login [{{:keys [name]} :params session :session :as req}]
   (prn req)
-  {:body (html [:a {:href "/"} "continue"])
-   :session (assoc session :game-state (init-game-state name))}) 
+  (->
+    (redirect "/")
+    (assoc :session (assoc session :game-state (init-game-state name)))))
+
+;  {:body (html [:a {:href "/"} "continue"])
+;   :session (assoc session :game-state (init-game-state name))}) 
+
+(defn restart [req]
+  ; broken
+  (prn "restart")
+  (prn "req " req)
+  (->
+    (redirect "/login")
+    (assoc :session nil)))
 
 
 (defn render-main [{{{:keys [foe rack hp name score] } :game-state} :session :as req}]
@@ -186,6 +198,7 @@
   (GET "/" [] main-page)
   (GET "/login" [] login)
   (GET "/word" [] play-word)
+  (GET "/restart" [] restart)
   (route/resources "/")
   (route/not-found "Not Found"))
 
