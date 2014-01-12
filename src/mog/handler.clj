@@ -146,29 +146,36 @@
         ))
 
 
-(defn play-word [{{:keys [word]} :params {{:keys [rack] :as game-state} :game-state} :session :as req}]
+(defn play-word [{{:keys [word]} :params {{:keys [rack] :as game-state} :game-state :as session} :session :as req}]
+  (prn req)
   (prn word)
+  (prn "rack" rack)
   (prn "in rack" (word-in-rack? rack word))
   (prn "valid" (valid-word? word))
-  (prn "rack" rack)
   (prn "sess" session)
   (prn "gs" game-state)
 
   (if (word-in-rack? rack word)
     (if (valid-word? word)
-      (let [k (->
-        (response (render-main req))
-        (assoc :session { :game-state (assoc game-state :rack (remove-word-from-rack rack word))}))]
-        (prn k)
-        k)
+      (let [gs (assoc game-state :rack (remove-word-from-rack rack word))
+            r (assoc-in req [ :session :game-state ] gs ) ]
+        (->
+          (response (render-main r))
+          (assoc :session { :game-state gs })))
 ;      {:body (render req)
 ;       :session { :game-state (assoc game-state :rack (remove-word-from-rack rack word)) }}
       {:body "invalid word"})
     {:body "wrong letters"}))
 
 
-(defn main-page [{{{:keys [fighting]} :game-state :as game-state} :session :as req}]
-  (prn req)
+; user=> (let [ { { { :keys [c] :as b } :b :as a } :a :as req }  { :a { :b { :c 1 } } } ] (prn a b c req))
+; {:b {:c 1}} {:c 1} 1 {:a {:b {:c 1}}}
+
+
+(defn main-page [{{{:keys [fighting] :as game-state } :game-state :as session } :session :as req}]
+  (prn "req" req)
+  (prn "game" game-state ) 
+  (prn "sess" session ) 
   (if fighting 
       (-> (response (render-main req)) 
         (assoc :session { :game-state game-state }))
