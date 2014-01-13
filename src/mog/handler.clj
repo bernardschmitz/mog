@@ -142,7 +142,7 @@
     (assoc :session nil)))
 
 
-(defn render-main [{{{:keys [foe rack hp name score] } :game-state} :session :as req}]
+(defn render-main [{{{:keys [foe rack hp name error score word-score] } :game-state} :session :as req}]
   (html [:p "High Score: " top-score] [:br] [:br] [:p "Score: " score] [:br] [:br]
         [:br]
         [:p "Name: " name]
@@ -152,6 +152,10 @@
         [:p "HP: " (:hp foe)]
         [:br]
         [:p "Letters: " [:font {:size "20px"} (map #(str " " % " ") (sort rack))]]
+        (if word-score
+          [:p "Hit: " word-score])
+        (if error
+          [:p "Error: " error])
         [:form {:action "/word"}  
           [:input {:type "text" :name "word"}] 
           [:input {:type "submit"}]]
@@ -169,15 +173,23 @@
 
   (if (word-in-rack? rack word)
     (if (valid-word? word)
-      (let [gs (assoc game-state :rack (remove-word-from-rack rack word))
+      (let [gs (assoc game-state :error nil :rack (remove-word-from-rack rack word) :word-score (score-word word) )
             r (assoc-in req [ :session :game-state ] gs ) ]
         (->
           (response (render-main r))
           (assoc :session { :game-state gs })))
-;      {:body (render req)
-;       :session { :game-state (assoc game-state :rack (remove-word-from-rack rack word)) }}
-      {:body "invalid word"})
-    {:body "wrong letters"}))
+
+      (let [gs (assoc game-state :word-score nil :error "Invalid word" )
+            r (assoc-in req [ :session :game-state ] gs ) ]
+        (->
+          (response (render-main r))
+          (assoc :session { :game-state gs }))))
+
+    (let [gs (assoc game-state :word-score nil :error "Wrong letters" )
+          r (assoc-in req [ :session :game-state ] gs ) ]
+      (->
+        (response (render-main r))
+        (assoc :session { :game-state gs })))))
 
 
 ; user=> (let [ { { { :keys [c] :as b } :b :as a } :a :as req }  { :a { :b { :c 1 } } } ] (prn a b c req))
