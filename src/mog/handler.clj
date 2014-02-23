@@ -207,7 +207,7 @@
 
 
 (defroutes app-routes
-  (GET "/" [] main-page)
+;  (GET "/" [] main-page)
   (GET "/login" [] login)
   (GET "/word" [] play-word)
   (GET "/restart" [] restart)
