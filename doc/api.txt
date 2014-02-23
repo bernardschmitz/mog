@@ -1,0 +1,127 @@
+
+startGame
+
+Starts the game.  Initializes the player info, score etc.  Returns player info and gameId.
+
+
+	request:
+		name : "Jim"		
+	response:
+		gameId: 100
+		player: {
+			name: "Jim"
+			hp: 200
+			score: 0
+		}
+		highScore: 1000
+	
+
+nextRound
+
+Initializes the next round.  Selects/generates a monster, randomly generates 20 letters.  Decides who plays first.
+
+
+	request:
+		gameId : 100
+	response:
+		gameId: 100
+		letters: "abcde..."
+		monster: { 
+			name : "Satan ..."
+			hp: 200
+		}
+		player: {
+			name: "Noah"
+			hp: 200
+			score: 0
+		}
+		highScore: 1000
+		initiative: player/monster
+		info: [
+			"messages about what happened"	
+			"messages about what happened"	
+			"messages about what happened"	
+		]
+
+
+
+monsterAttack
+
+Performs a monster attack.
+
+
+	request:
+		gameId: 100
+	response:
+		gameId: 100
+		letters: "abcde..."
+		monster: { 
+			name : "Satan ..."
+			hp: 200
+			dead: true/false
+		}
+		player: {
+			name: "Noah"
+			hp: 200
+			score: 890
+			dead: true/false
+		}
+		highScore: 1000
+		info: [
+			"messages about what happened"	
+			"messages about what happened"	
+			"messages about what happened"	
+		]
+
+
+playerAttack
+
+Performs a player attack.  Might return an error if the word is invalid.
+
+	request:
+		gameId: 100
+		word: "awesome"
+	response:
+
+		gameId: 100
+		error: "Invalid word", "Illegal letter", etc...
+
+		OR
+
+		gameId: 100
+		letters: "abcde..."
+		monster: { 
+			name : "Satan ..."
+			hp: 200
+			dead: true/false
+		}
+		player: {
+			name: "Noah"
+			hp: 200
+			score: 890
+			dead: true/false
+		}
+		highScore: 1000
+		info: [
+			"messages about what happened"	
+			"messages about what happened"	
+			"messages about what happened"	
+		]
+		
+
+highScore
+
+Returns the high score list.
+
+	request:
+
+	response:
+		highScores: [
+			{
+				name: "Bilbo"
+				score: 1000
+			}
+			...
+			]
+				
+		
