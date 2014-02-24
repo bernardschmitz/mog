@@ -8,14 +8,28 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/bootstrap-theme.min.css">
 
+    <title>Menagerie of the Gods</title>
+
   </head>
   <body>
-    <div>
-       <label>Name:</label>
-       <input type="text" ng-model="yourName" placeholder="Enter a name here">
-       <hr>
-       <h1>Hello {{yourName}}!</h1>
+
+
+    <div class="container">
+    <h1>Menagerie of the Gods</h1>
+    <form role="form">
+      <div class="form-group">
+          <label for="name">Name</label>
+	  <input type="text" class="form-control" id="name" placeholder="Enter your name..." ng-model="player.name">
+	 </div>
+      <button type="submit" class="btn btn-default">Fight!</button>
+</form>
+
+</div>
+
+    <div class="container">
+       <h1>{{player.name}}</h1>
     </div>
+
 
     <script src="jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
