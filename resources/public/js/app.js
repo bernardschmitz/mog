@@ -1,9 +1,9 @@
 
 
-var menagerieApp = angular.module('menagerieApp', ['ngRoute']);
+var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
  
 
-menagerieApp.config(['$routeProvider',
+.config(['$routeProvider',
   function($routeProvider) {
     $routeProvider.
       when('/start', {
@@ -17,18 +17,65 @@ menagerieApp.config(['$routeProvider',
       otherwise({
         redirectTo: '/start'
       });
-}]);
+}])
+
+.service('mogService', function() {
+
+	var player = {
+		hp:50,
+		score: 100
+	};
+
+	var monster = {
+		name: 'Satan',
+		hp: 1000
+	};
+
+	var letters = 'anxmvcmdhrutuueeeldf';
+
+	this.startGame = function(name) {
+		player.name = name;
+	};
+
+	this.getPlayer = function() {
+		return player;
+	};
+
+	this.getMonster = function() {
+		return monster;
+	};
+
+	this.getLetters = function() {
+		return letters;
+	};
+
+})
  
- 
-menagerieApp.controller('StartController', function($scope) {
+.controller('StartController', function($scope, $location, mogService) {
      
-    $scope.message = 'This is Add new order screen';
-});
+	$scope.startGame = function(event) {
+
+		console.log(event);
+		if($scope.player && $scope.player.name) {
+			console.log('Hi '+$scope.player.name);
+
+			console.log(mogService);
+
+			mogService.startGame($scope.player.name);
+
+			$location.path("/game");
+
+//			 $location.search('name','Freewind').path('/game');
+		}
+	};
+})
  
+.controller('GameController', function($scope, mogService) {
+
+	$scope.player = mogService.getPlayer();
+	$scope.monster = mogService.getMonster();
+	$scope.letters = mogService.getLetters();
  
-menagerieApp.controller('GameController', function($scope) {
- 
-    $scope.message = 'This is Show orders screen';
 });
 
 
