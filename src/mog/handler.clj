@@ -2,7 +2,7 @@
 (ns mog.handler
   (:use compojure.core hiccup.core clojure.set ring.util.response)
   (:require [compojure.handler :as handler]
-            [compojure.route :as route]
+            [ring.middleware.json :as json]
             [compojure.route :as route]
             [clojure.java.io :as io]))
 
@@ -206,15 +206,23 @@
       (login-form)))
 
 
+(defn start-game [req]
+  (prn "req" req)
+  (response { :blah "hello"}))
+
+
 (defroutes app-routes
+  (GET "/mog/startGame" [] start-game)
 ;  (GET "/" [] main-page)
-  (GET "/login" [] login)
-  (GET "/word" [] play-word)
-  (GET "/restart" [] restart)
+;  (GET "/login" [] login)
+;  (GET "/word" [] play-word)
+;  (GET "/restart" [] restart)
   (route/resources "/")
   (route/not-found "Not Found"))
 
 
 (def app
-  (handler/site app-routes))
+  (-> (handler/api app-routes)
+;      (json/wrap-json-body)
+      (json/wrap-json-response)))
 

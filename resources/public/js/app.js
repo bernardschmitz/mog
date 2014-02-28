@@ -19,7 +19,7 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
       });
 }])
 
-.service('mogService', function() {
+.service('mogService', function($http) {
 
 	var player = {
 		hp:50,
@@ -34,7 +34,30 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 	var letters = 'anxmvcmdhrutuueeeldf';
 
 	this.startGame = function(name) {
+
 		player.name = name;
+
+		$http.get(
+			'/mog/startGame',
+			{
+				name: player.name				
+			}
+		)
+		.success(function(data, status, headers, config) {
+			console.log('success');
+			console.log(data);
+			console.log(status);
+			console.log(headers);
+			console.log(config);
+		})
+		.error(function(data, status, headers, config) {
+			console.log('error');
+			console.log(data);
+			console.log(status);
+			console.log(headers);
+			console.log(config);
+		});
+
 	};
 
 	this.getPlayer = function() {
