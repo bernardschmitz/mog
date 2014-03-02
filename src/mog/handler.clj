@@ -11,7 +11,7 @@
 (def top-score ((first @high-scores) :score))
 
 (def monsters [
-               { :name "Goon" :hp 1000 }
+               { :name "Satan" :hp 1000 }
                ])
 
 (def letters (seq "abcdefghijklmnopqrstuvwxyz"))
@@ -206,9 +206,25 @@
       (login-form)))
 
 
-(defn start-game [req]
+(def game-id (ref 1000))
+
+(def game-states (ref {}))
+
+(defn make-new-game [name] 
+  {
+    :player {
+      :name name :hp 100 :score 0
+    }
+  })
+
+(defn start-game [{{:keys [name] :as params} :params :as req}]
   (prn "req" req)
-  (response { :blah "hello"}))
+  (prn "params" params)
+  (prn "name" name)
+
+  (let [game (make-new-game name)
+    	id (dosync (let [id (alter game-id inc)] (ref-set game-states (assoc @game-states id game)) id))]
+	(response { :gameId id :player game })))
 
 
 (defroutes app-routes
