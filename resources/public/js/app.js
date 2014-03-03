@@ -40,7 +40,39 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 		$http.get(
 			'/mog/startGame',
 			{
-				name: player.name				
+				params: {
+					name: player.name				
+				}
+			}
+		)
+		.success(function(data, status, headers, config) {
+			console.log('success');
+			console.log(data);
+			console.log(status);
+			console.log(headers);
+			console.log(config);
+
+				
+
+		})
+		.error(function(data, status, headers, config) {
+			console.log('error');
+			console.log(data);
+			console.log(status);
+			console.log(headers);
+			console.log(config);
+		});
+	};
+
+
+	this.nextRound = function(gameId) {
+
+		$http.get(
+			'/mog/nextRound',
+			{
+				params: {
+					gameId: gameId
+				}
 			}
 		)
 		.success(function(data, status, headers, config) {
@@ -57,8 +89,8 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 			console.log(headers);
 			console.log(config);
 		});
-
 	};
+
 
 	this.getPlayer = function() {
 		return player;
@@ -87,8 +119,6 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 			mogService.startGame($scope.player.name);
 
 			$location.path("/game");
-
-//			 $location.search('name','Freewind').path('/game');
 		}
 	};
 })

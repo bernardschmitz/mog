@@ -12,7 +12,7 @@
 (defn top-score [] ((first @high-scores) :score))
 
 (def monsters [
-               { :name "Satan" :hp 1000 }
+               { :name "Hitler" :hp 1000 }
                ])
 
 
