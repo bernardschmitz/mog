@@ -21,38 +21,33 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 
 .service('mogService', function($http) {
 
-	var player = {
-		hp:50,
-		score: 100
-	};
 
-	var monster = {
-		name: 'Satan',
-		hp: 1000
-	};
+	var gameState = {};
 
-	var letters = 'anxmvcmdhrutuueeeldf';
+	this.startGame = function(name, callback) {
 
-	this.startGame = function(name) {
-
-		player.name = name;
+		console.log('name '+name);
 
 		$http.get(
 			'/mog/startGame',
 			{
 				params: {
-					name: player.name				
+					name: name				
 				}
 			}
 		)
 		.success(function(data, status, headers, config) {
 			console.log('success');
 			console.log(data);
-			console.log(status);
-			console.log(headers);
-			console.log(config);
 
-				
+			gameState.gameId = data.gameId;
+
+			gameState.player = {};
+			gameState.player.name = data.player.name;
+			gameState.player.hp = data.player.hp;
+			gameState.player.score = data.player.score;
+
+			callback(data);
 
 		})
 		.error(function(data, status, headers, config) {
@@ -65,7 +60,9 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 	};
 
 
-	this.nextRound = function(gameId) {
+	this.nextRound = function(gameId, callback) {
+
+		console.log('gameId '+gameId);
 
 		$http.get(
 			'/mog/nextRound',
@@ -78,9 +75,24 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 		.success(function(data, status, headers, config) {
 			console.log('success');
 			console.log(data);
-			console.log(status);
-			console.log(headers);
-			console.log(config);
+
+			gameState.player = {};
+			gameState.player.name = data.player.name;
+			gameState.player.hp = data.player.hp;
+			gameState.player.score = data.player.score;
+
+			gameState.monster = {};
+			gameState.monster.name = data.monster.name;
+			gameState.monster.hp = data.monster.hp;
+
+			gameState.letters = data.letters;
+			gameState.highScore = data.highScore;
+			gameState.initiative = data.initiative;
+
+			gameState.info = data.info;
+
+			callback(data);
+
 		})
 		.error(function(data, status, headers, config) {
 			console.log('error');
@@ -91,17 +103,20 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 		});
 	};
 
+	this.getGameId = function() {
+		return gameState.gameId;
+	};
 
 	this.getPlayer = function() {
-		return player;
+		return gameState.player;
 	};
 
 	this.getMonster = function() {
-		return monster;
+		return gameState.monster;
 	};
 
 	this.getLetters = function() {
-		return letters;
+		return gameState.letters;
 	};
 
 })
@@ -110,15 +125,26 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
      
 	$scope.startGame = function(event) {
 
-		console.log(event);
+		console.log("startGame event");
+
 		if($scope.player && $scope.player.name) {
 			console.log('Hi '+$scope.player.name);
 
-			console.log(mogService);
+			mogService.startGame($scope.player.name,
 
-			mogService.startGame($scope.player.name);
+				function(data) {
+					console.log('startGame callback');
 
-			$location.path("/game");
+					mogService.nextRound(mogService.getGameId(), 
+
+						function(data, status, headers, config) {
+							console.log('nextRound callback');
+
+							$location.path("/game");
+						});
+
+				});
+
 		}
 	};
 })

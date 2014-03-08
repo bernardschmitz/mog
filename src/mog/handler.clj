@@ -18,6 +18,13 @@
 
 (def game-id (ref 1000))
 
+(defn format-game-id [id] (format "g%08x" id))
+
+(defn current-game-id [] (format-game-id @game-id))
+
+(defn next-game-id [] (format-game-id (alter game-id inc)))
+
+
 (def game-states (ref {}))
 
 
@@ -226,14 +233,35 @@
   (prn "req" req)
   (prn "params" params)
   (prn "name" name)
+	(prn "gs" @game-states)
 
   (let [game (make-new-game name)
-    	id (dosync (let [id (alter game-id inc)] (ref-set game-states (assoc @game-states id game)) id))]
+    	id (dosync (let [id (next-game-id)] (ref-set game-states (assoc @game-states id game)) id))]
 	(response (assoc game :gameId id :highScore (top-score) ))))
+
+(defn next-round [{{id :gameId :as params} :params :as req}]
+  (prn "req" req)
+  (prn "params" params)
+  (prn "id" id)
+
+	(prn "prev game" (@game-states id))
+
+	(prn "gs" @game-states)
+
+  (let [game (@game-states id)
+	monster (rand-nth monsters)
+	letters (map str (random-letters))
+	high-score 10000
+	initiative "player"
+	info ["blah blah", "yeah", "some info"]]
+	(dosync (ref-set game-states (assoc @game-states id (assoc game :monster monster :letters letters :highScore high-score :initiative initiative :info info))))
+	(response (@game-states id))))
+	  
 
 
 (defroutes app-routes
   (GET "/mog/startGame" [] start-game)
+  (GET "/mog/nextRound" [] next-round)
 ;  (GET "/" [] main-page)
 ;  (GET "/login" [] login)
 ;  (GET "/word" [] play-word)
