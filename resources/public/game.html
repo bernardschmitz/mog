@@ -12,7 +12,7 @@
 	</div>
 
 	<div class="col-xs-12">
-		<span ng-repeat="letter in letters track by $index" style="font-size:large;">{{letter}}</span>	
+		<span ng-repeat="letter in letters track by $index" style="font-size:large;">{{letter | uppercase }}</span>	
 	</div>
 
 </div>
