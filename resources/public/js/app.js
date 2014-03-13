@@ -155,6 +155,11 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 	$scope.monster = mogService.getMonster();
 	$scope.letters = mogService.getLetters();
  
+	$scope.playerAttack = function(event) {
+		console.log("playerAttack event");
+		console.log($scope.player.word);
+	};
+
 });
 
 
