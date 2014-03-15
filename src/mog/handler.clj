@@ -72,7 +72,7 @@
 
 
 (defn random-letters [] 
-  (take 20 (shuffle letter-pool)))
+  (map str (take 20 (shuffle letter-pool))))
 
 
 (defn remove-letter-from-rack [rack letter]
@@ -87,6 +87,7 @@
 
 
 (defn letter-in-rack? [rack letter]
+	(prn letter)
   (some #{letter} rack))
 
 
@@ -239,6 +240,7 @@
     	id (dosync (let [id (next-game-id)] (ref-set game-states (assoc @game-states id game)) id))]
 	(response (assoc game :gameId id :highScore (top-score) ))))
 
+
 (defn next-round [{{id :gameId :as params} :params :as req}]
   (prn "req" req)
   (prn "params" params)
@@ -250,7 +252,7 @@
 
   (let [game (@game-states id)
 	monster (rand-nth monsters)
-	letters (map str (random-letters))
+	letters (random-letters)
 	high-score 10000
 	initiative "player"
 	info ["blah blah", "yeah", "some info"]]
@@ -262,29 +264,37 @@
   (prn "id" id)
   (prn "word" word)
 
-  (let [game (@game-states id)]
-	(prn game)))
+  (let [game (@game-states id)
+	rack (game :letters)]
+	(prn game)
+	(prn "rack" rack)
+	(if (valid-word? word)
+	    (if (word-in-rack? rack word)
+                (prn "in rack")
+                (response { :error "word not in letters" }))
+            (response { :error "invalid word" }))))
 
 
-  (if (word-in-rack? rack word)
-    (if (valid-word? word)
-      (let [gs (assoc game-state :error nil :rack (remove-word-from-rack rack word) :word-score (score-word word) )
-            r (assoc-in req [ :session :game-state ] gs ) ]
-        (->
-          (response (render-main r))
-          (assoc :session { :game-state gs })))
 
-      (let [gs (assoc game-state :word-score nil :error "Invalid word" )
-            r (assoc-in req [ :session :game-state ] gs ) ]
-        (->
-          (response (render-main r))
-          (assoc :session { :game-state gs }))))
-
-    (let [gs (assoc game-state :word-score nil :error "Wrong letters" )
-          r (assoc-in req [ :session :game-state ] gs ) ]
-      (->
-        (response (render-main r))
-        (assoc :session { :game-state gs })))))
+;  (if (word-in-rack? rack word)
+;    (if (valid-word? word)
+;      (let [gs (assoc game-state :error nil :rack (remove-word-from-rack rack word) :word-score (score-word word) )
+;            r (assoc-in req [ :session :game-state ] gs ) ]
+;        (->
+;          (response (render-main r))
+;          (assoc :session { :game-state gs })))
+;
+;      (let [gs (assoc game-state :word-score nil :error "Invalid word" )
+;            r (assoc-in req [ :session :game-state ] gs ) ]
+;        (->
+;          (response (render-main r))
+;          (assoc :session { :game-state gs }))))
+;
+;    (let [gs (assoc game-state :word-score nil :error "Wrong letters" )
+;          r (assoc-in req [ :session :game-state ] gs ) ]
+;      (->
+;        (response (render-main r))
+;        (assoc :session { :game-state gs })))))
 
 
 
