@@ -103,6 +103,51 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 		});
 	};
 
+	this.playerAttack = function(gameId, word, callback) {
+		
+		console.log('gameId '+gameId);
+
+		$http.get(
+			'/mog/playerAttack',
+			{
+				params: {
+					gameId: gameId,
+					word: word
+				}
+			}
+		)
+		.success(function(data, status, headers, config) {
+			console.log('success');
+			console.log(data);
+
+//			gameState.player = {};
+//			gameState.player.name = data.player.name;
+//			gameState.player.hp = data.player.hp;
+//			gameState.player.score = data.player.score;
+//
+//			gameState.monster = {};
+//			gameState.monster.name = data.monster.name;
+//			gameState.monster.hp = data.monster.hp;
+//
+//			gameState.letters = data.letters;
+//			gameState.highScore = data.highScore;
+//			gameState.initiative = data.initiative;
+//
+//			gameState.info = data.info;
+//
+			callback(data);
+
+		})
+		.error(function(data, status, headers, config) {
+			console.log('error');
+			console.log(data);
+			console.log(status);
+			console.log(headers);
+			console.log(config);
+		});
+
+	};
+
 	this.getGameId = function() {
 		return gameState.gameId;
 	};
@@ -157,7 +202,17 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
  
 	$scope.playerAttack = function(event) {
 		console.log("playerAttack event");
-		console.log($scope.player.word);
+
+		if($scope.player && $scope.player.word) {
+			console.log('word '+$scope.player.word);
+
+			mogService.playerAttack(mogService.getGameId(), $scope.player.word, 
+				function(data) {
+					console.log('playerAttack callback');
+
+					console.log(data);
+				});
+		}
 	};
 
 });

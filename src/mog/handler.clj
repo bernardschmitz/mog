@@ -258,14 +258,40 @@
 	(response (@game-states id))))
 	  
 
+(defn player-attack [{{id :gameId word :word :as params} :params :as req}]
+  (prn "id" id)
+  (prn "word" word)
+
+  (let [game (@game-states id)]
+	(prn game)))
+
+
+  (if (word-in-rack? rack word)
+    (if (valid-word? word)
+      (let [gs (assoc game-state :error nil :rack (remove-word-from-rack rack word) :word-score (score-word word) )
+            r (assoc-in req [ :session :game-state ] gs ) ]
+        (->
+          (response (render-main r))
+          (assoc :session { :game-state gs })))
+
+      (let [gs (assoc game-state :word-score nil :error "Invalid word" )
+            r (assoc-in req [ :session :game-state ] gs ) ]
+        (->
+          (response (render-main r))
+          (assoc :session { :game-state gs }))))
+
+    (let [gs (assoc game-state :word-score nil :error "Wrong letters" )
+          r (assoc-in req [ :session :game-state ] gs ) ]
+      (->
+        (response (render-main r))
+        (assoc :session { :game-state gs })))))
+
+
 
 (defroutes app-routes
   (GET "/mog/startGame" [] start-game)
   (GET "/mog/nextRound" [] next-round)
-;  (GET "/" [] main-page)
-;  (GET "/login" [] login)
-;  (GET "/word" [] play-word)
-;  (GET "/restart" [] restart)
+  (GET "/mog/playerAttack" [] player-attack)
   (route/resources "/")
   (route/not-found "Not Found"))
 
