@@ -80,22 +80,29 @@
     (concat h (rest t))))
 
 
+
+
 (defn remove-word-from-rack [rack word]
-  (if (seq word)
-    (remove-word-from-rack (remove-letter-from-rack rack (first word)) (rest word))
-    rack))
+  (loop [r rack 
+         w (map str (seq word))]
+         (if (empty? w)
+             r
+             (recur (remove-letter-from-rack r (first w)) (rest w)))))
 
 
 (defn letter-in-rack? [rack letter]
-	(prn letter)
   (some #{letter} rack))
 
 
 (defn word-in-rack? [rack word]
-  (let [letter (first word)]
+  (loop [r rack
+         w (map str (seq word))]
+    (let [c (first w)]
     (cond 
-      (nil? letter) true
-      (letter-in-rack? rack letter) (and true (word-in-rack? (remove-letter-from-rack rack letter) (rest word))))))
+      (nil? c) true
+      (letter-in-rack? r c) (recur 
+                                   (remove-letter-from-rack r c)
+                                   (rest w))))))
 
 
 (defn add-to-dict [dict word]
@@ -132,102 +139,6 @@
       (find-word x dict rack))))
 
 
-(defn next-monster []
-  (rand-nth monsters))
-
-
-(defn init-game-state [name]
-  {:name name :hp 1000 :score 0 :fighting true :rack (random-letters) :foe (next-monster) }) 
-
-
-(defn login-form []
-  (html [:p "Name: "] 
-        [:form {:action "/login"}  
-          [:input {:type "text" :name "name"}] 
-          [:input {:type "submit"}]]))
-
-
-(defn login [{{:keys [name]} :params session :session :as req}]
-  (prn req)
-  (->
-    (redirect "/")
-    (assoc :session (assoc session :game-state (init-game-state name)))))
-
-;  {:body (html [:a {:href "/"} "continue"])
-;   :session (assoc session :game-state (init-game-state name))}) 
-
-(defn restart [req]
-  ; broken
-  (prn "restart")
-  (prn "req " req)
-  (->
-    (redirect "/login")
-    (assoc :session nil)))
-
-
-(defn render-main [{{{:keys [foe rack hp name error score word-score] } :game-state} :session :as req}]
-  (html [:p "High Score: " top-score] [:br] [:br] [:p "Score: " score] [:br] [:br]
-        [:br]
-        [:p "Name: " name]
-        [:p "HP: " hp]
-        [:br]
-        [:p "Foe: " (:name foe)]
-        [:p "HP: " (:hp foe)]
-        [:br]
-        [:p "Letters: " [:font {:size "20px"} (map #(str " " % " ") (sort rack))]]
-        (if word-score
-          [:p "Hit: " word-score])
-        (if error
-          [:p "Error: " error])
-        [:form {:action "/word"}  
-          [:input {:type "text" :name "word"}] 
-          [:input {:type "submit"}]]
-        ))
-
-
-(defn play-word [{{:keys [word]} :params {{:keys [rack] :as game-state} :game-state :as session} :session :as req}]
-  (prn req)
-  (prn word)
-  (prn "rack" rack)
-  (prn "in rack" (word-in-rack? rack word))
-  (prn "valid" (valid-word? word))
-  (prn "sess" session)
-  (prn "gs" game-state)
-
-  (if (word-in-rack? rack word)
-    (if (valid-word? word)
-      (let [gs (assoc game-state :error nil :rack (remove-word-from-rack rack word) :word-score (score-word word) )
-            r (assoc-in req [ :session :game-state ] gs ) ]
-        (->
-          (response (render-main r))
-          (assoc :session { :game-state gs })))
-
-      (let [gs (assoc game-state :word-score nil :error "Invalid word" )
-            r (assoc-in req [ :session :game-state ] gs ) ]
-        (->
-          (response (render-main r))
-          (assoc :session { :game-state gs }))))
-
-    (let [gs (assoc game-state :word-score nil :error "Wrong letters" )
-          r (assoc-in req [ :session :game-state ] gs ) ]
-      (->
-        (response (render-main r))
-        (assoc :session { :game-state gs })))))
-
-
-; user=> (let [ { { { :keys [c] :as b } :b :as a } :a :as req }  { :a { :b { :c 1 } } } ] (prn a b c req))
-; {:b {:c 1}} {:c 1} 1 {:a {:b {:c 1}}}
-
-
-(defn main-page [{{{:keys [fighting] :as game-state } :game-state :as session } :session :as req}]
-  (prn "req" req)
-  (prn "game" game-state ) 
-  (prn "sess" session ) 
-  (if fighting 
-      (-> (response (render-main req)) 
-        (assoc :session { :game-state game-state }))
-      (login-form)))
-
 
 
 (defn start-game [{{:keys [name] :as params} :params :as req}]
@@ -259,6 +170,27 @@
 	(dosync (ref-set game-states (assoc @game-states id (assoc game :monster monster :letters letters :highScore high-score :initiative initiative :info info))))
 	(response (@game-states id))))
 	  
+(defn add-points [m points]
+  (let [score (m :score)]
+    (assoc m :score (+ score points))))
+
+(defn apply-damage [m damage]
+  (let [hp (m :hp)]
+    (assoc m :hp (- hp damage))))
+
+
+(defn play-word [{rack :letters player :player monster :monster :as game} word]
+  (let [points (score-word word)
+        rack (remove-word-from-rack rack word)]
+   (prn word "in rack")
+
+   (prn game)
+   (prn rack)
+
+  (dosync 
+    (let [gs (assoc game :letters rack :player (add-points player points) :monster (apply-damage monster points) )]
+      (ref-set game-states gs) gs))))
+
 
 (defn player-attack [{{id :gameId word :word :as params} :params :as req}]
   (prn "id" id)
@@ -270,7 +202,7 @@
 	(prn "rack" rack)
 	(if (valid-word? word)
 	    (if (word-in-rack? rack word)
-                (prn "in rack")
+                (response (play-word game word))
                 (response { :error "word not in letters" }))
             (response { :error "invalid word" }))))
 
