@@ -120,21 +120,27 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 			console.log('success');
 			console.log(data);
 
-//			gameState.player = {};
-//			gameState.player.name = data.player.name;
-//			gameState.player.hp = data.player.hp;
-//			gameState.player.score = data.player.score;
-//
-//			gameState.monster = {};
-//			gameState.monster.name = data.monster.name;
-//			gameState.monster.hp = data.monster.hp;
-//
-//			gameState.letters = data.letters;
-//			gameState.highScore = data.highScore;
-//			gameState.initiative = data.initiative;
-//
-//			gameState.info = data.info;
-//
+			if(data.error) {
+				gameState.error = data.error;
+			}
+			else {
+
+	//			gameState.player = {};
+	//			gameState.player.name = data.player.name;
+	//			gameState.player.hp = data.player.hp;
+				gameState.player.score = data.player.score;
+	//
+	//			gameState.monster = {};
+	//			gameState.monster.name = data.monster.name;
+				gameState.monster.hp = data.monster.hp;
+	//
+				gameState.letters = data.letters;
+				gameState.highScore = data.highScore;
+	//			gameState.initiative = data.initiative;
+	//
+				gameState.info = data.info;
+	//
+			}
 			callback(data);
 
 		})
@@ -162,6 +168,10 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 
 	this.getLetters = function() {
 		return gameState.letters;
+	};
+
+	this.getInfo = function() {
+		return gameState.info;
 	};
 
 })
@@ -199,6 +209,7 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 	$scope.player = mogService.getPlayer();
 	$scope.monster = mogService.getMonster();
 	$scope.letters = mogService.getLetters();
+	$scope.info = mogService.getInfo();
  
 	$scope.playerAttack = function(event) {
 		console.log("playerAttack event");
@@ -211,6 +222,18 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 					console.log('playerAttack callback');
 
 					console.log(data);
+
+					if(data.error) {
+						$scope.error = data.error;
+					}
+					else {
+						$scope.error = '';
+						$scope.player = mogService.getPlayer();
+						$scope.monster = mogService.getMonster();
+						$scope.letters = mogService.getLetters();
+						$scope.info = mogService.getInfo();
+					}
+
 				});
 		}
 	};

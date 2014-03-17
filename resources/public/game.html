@@ -29,6 +29,9 @@
 
 
 <div class="row">
+		{{error}}
+</div>
+<div class="row">
   <div class="col-xs-1">Word:</div> 
   <div class="col-xs-5">
     <div class="input-group input-group-sm">
@@ -38,5 +41,11 @@
       </span>
     </div>
   </div>
+</div>
+
+<hr/>
+
+<div class="row">
+	<p ng-repeat="i in info">{{i}}</p>
 </div>
 

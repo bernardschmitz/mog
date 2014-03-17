@@ -7,9 +7,14 @@
             [clojure.java.io :as io]))
 
 
-(def high-scores (ref [ {:name "Bilbo" :score 98765 } { :name "Xtro" :score 3737 } ]))
+(def high-scores (ref [ {:name "Bilbo" :score 20 } { :name "Xtro" :score 10 } ]))
 
 (defn top-score [] ((first @high-scores) :score))
+
+(defn update-high-scores [player]
+  (dosync 
+    (ref-set high-scores
+           (take 20 (sort-by :score > (conj @high-scores player))))))
 
 (def monsters [
                { :name "Hitler" :hp 1000 }
@@ -166,8 +171,15 @@
 	letters (random-letters)
 	high-score 10000
 	initiative "player"
-	info ["blah blah", "yeah", "some info"]]
-	(dosync (ref-set game-states (assoc @game-states id (assoc game :monster monster :letters letters :highScore high-score :initiative initiative :info info))))
+	info '()]
+	(dosync 
+          (ref-set 
+            game-states 
+            (assoc 
+              @game-states 
+              id (assoc 
+                   game 
+                   :monster monster :letters letters :highScore high-score :initiative initiative :info info))))
 	(response (@game-states id))))
 	  
 (defn add-points [m points]
@@ -179,7 +191,7 @@
     (assoc m :hp (- hp damage))))
 
 
-(defn play-word [{rack :letters player :player monster :monster :as game} word]
+(defn play-word [{rack :letters player :player monster :monster info :info :as game} word]
   (let [points (score-word word)
         rack (remove-word-from-rack rack word)]
    (prn word "in rack")
@@ -187,47 +199,28 @@
    (prn game)
    (prn rack)
 
-  (dosync 
-    (let [gs (assoc game :letters rack :player (add-points player points) :monster (apply-damage monster points) )]
-      (ref-set game-states gs) gs))))
+   (assoc game :letters rack :player (add-points player points) :monster (apply-damage monster points)
+         :info (conj info (format "%s hits %s for %d damage." (player :name) (monster :name) points)))))
 
 
 (defn player-attack [{{id :gameId word :word :as params} :params :as req}]
   (prn "id" id)
   (prn "word" word)
 
+  (prn "game-states" @game-states)
+  (prn "game" (@game-states id))
+
   (let [game (@game-states id)
 	rack (game :letters)]
-	(prn game)
+	(prn "game" game)
 	(prn "rack" rack)
 	(if (valid-word? word)
 	    (if (word-in-rack? rack word)
-                (response (play-word game word))
+                (let [g (play-word game word)]
+                  (response 
+                    (dosync (ref-set game-states (assoc @game-states id g)) g)))
                 (response { :error "word not in letters" }))
             (response { :error "invalid word" }))))
-
-
-
-;  (if (word-in-rack? rack word)
-;    (if (valid-word? word)
-;      (let [gs (assoc game-state :error nil :rack (remove-word-from-rack rack word) :word-score (score-word word) )
-;            r (assoc-in req [ :session :game-state ] gs ) ]
-;        (->
-;          (response (render-main r))
-;          (assoc :session { :game-state gs })))
-;
-;      (let [gs (assoc game-state :word-score nil :error "Invalid word" )
-;            r (assoc-in req [ :session :game-state ] gs ) ]
-;        (->
-;          (response (render-main r))
-;          (assoc :session { :game-state gs }))))
-;
-;    (let [gs (assoc game-state :word-score nil :error "Wrong letters" )
-;          r (assoc-in req [ :session :game-state ] gs ) ]
-;      (->
-;        (response (render-main r))
-;        (assoc :session { :game-state gs })))))
-
 
 
 (defroutes app-routes
