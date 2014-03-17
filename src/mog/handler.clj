@@ -200,7 +200,7 @@
    (prn rack)
 
    (assoc game :letters rack :player (add-points player points) :monster (apply-damage monster points)
-         :info (conj info (format "%s hits %s for %d damage." (player :name) (monster :name) points)))))
+         :info (conj info (format "%s shouts '%s' and hits %s for %d damage." (player :name) word (monster :name) points)))))
 
 
 (defn player-attack [{{id :gameId word :word :as params} :params :as req}]
