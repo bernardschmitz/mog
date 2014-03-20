@@ -22,7 +22,7 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 .service('mogService', function($http) {
 
 
-	var gameState = {};
+	var gameState = { player: { name: "Noah" } };
 
 	this.startGame = function(name, callback) {
 
@@ -212,6 +212,8 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 })
  
 .controller('StartController', function($scope, $location, mogService) {
+
+    $scope.player = mogService.getPlayer();
      
 	$scope.startGame = function(event) {
 
@@ -239,12 +241,16 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 	};
 })
  
-.controller('GameController', function($scope, mogService) {
+.controller('GameController', function($scope, $location, mogService) {
 
 	$scope.player = mogService.getPlayer();
 	$scope.monster = mogService.getMonster();
 	$scope.letters = mogService.getLetters();
 	$scope.info = mogService.getInfo();
+
+   $scope.start = function(event) {
+       $location.path("/start");
+   };
  
 	$scope.playerAttack = function(event) {
 		console.log("playerAttack event");
