@@ -191,7 +191,7 @@
     (assoc m :hp (- hp damage))))
 
 
-(defn play-word [{rack :letters player :player monster :monster info :info :as game} word]
+(defn player-play-word [{rack :letters player :player monster :monster info :info :as game} word]
   (let [points (score-word word)
         rack (remove-word-from-rack rack word)]
    (prn word "in rack")
@@ -203,7 +203,7 @@
          :info (conj info (format "%s shouts '%s' and hits %s for %d damage." (player :name) word (monster :name) points)))))
 
 
-(defn player-attack [{{id :gameId word :word :as params} :params :as req}]
+                                                                                                   (defn player-attack [{{id :gameId word :word :as params} :params :as req}]
   (prn "id" id)
   (prn "word" word)
 
@@ -216,17 +216,47 @@
 	(prn "rack" rack)
 	(if (valid-word? word)
 	    (if (word-in-rack? rack word)
-                (let [g (play-word game word)]
+                (let [g (player-play-word game word)]
                   (response 
                     (dosync (ref-set game-states (assoc @game-states id g)) g)))
                 (response { :error "word not in letters" }))
             (response { :error "invalid word" }))))
+
+(defn monster-play-word [{rack :letters player :player monster :monster info :info :as game} word]
+  (let [points (score-word word)
+        rack (remove-word-from-rack rack word)]
+
+   (prn "game" game)
+   (prn "rack" rack)
+   (prn "points" points)
+   
+   (assoc game :letters rack :player (apply-damage player points)
+          :info (conj info (format "%s screams '%s' and hits %s for %d damage." (monster :name) word (player :name) points)))))
+
+
+
+(defn monster-attack [{{id :gameId :as params} :params :as req}]
+  (prn "id" id)
+
+  (let [game (@game-states id)
+        rack (game :letters)]
+    (prn "game" game)
+    (prn "rack" rack)
+    (let [words (find-words (count rack) dict rack)
+          word  (rand-nth (seq words))]
+      (prn "words" words)
+      (prn "word" word)
+
+      (let [g (monster-play-word game word)]
+        (response
+         (dosync (ref-set game-states (assoc @game-states id g)) g))))))
 
 
 (defroutes app-routes
   (GET "/mog/startGame" [] start-game)
   (GET "/mog/nextRound" [] next-round)
   (GET "/mog/playerAttack" [] player-attack)
+  (GET "/mog/monsterAttack" [] monster-attack)
   (route/resources "/")
   (route/not-found "Not Found"))
 

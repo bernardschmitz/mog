@@ -154,6 +154,41 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 
 	};
 
+	this.monsterAttack = function(gameId, callback) {
+
+		console.log('gameId '+gameId);
+
+		$http.get(
+			'/mog/monsterAttack',
+			{
+				params: {
+					gameId: gameId
+				}
+			}
+		)
+		.success(function(data, status, headers, config) {
+			console.log('success');
+			console.log(data);
+
+			gameState.player.hp = data.player.hp;
+
+			gameState.letters = data.letters;
+			gameState.highScore = data.highScore;
+
+			gameState.info = data.info;
+
+			callback(data);
+		})
+		.error(function(data, status, headers, config) {
+			console.log('error');
+			console.log(data);
+			console.log(status);
+			console.log(headers);
+			console.log(config);
+		});
+	};
+
+
 	this.getGameId = function() {
 		return gameState.gameId;
 	};
@@ -232,12 +267,32 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 						$scope.monster = mogService.getMonster();
 						$scope.letters = mogService.getLetters();
 						$scope.info = mogService.getInfo();
-					}
 
-				});
-		}
-	};
+                                            mogService.monsterAttack(mogService.getGameId(), 
+                                                                     function(data) {
+                                                                         console.log('monsterAttack callback');
+                                                                         console.log(data);
 
-});
+                                                                         $scope.info = mogService.getInfo();
+                                                                         $scope.letters = mogService.getLetters();
+                                                                         $scope.player = mogService.getPlayer();
+
+                                                                         }
+                                                                     );
+                                            }
+                                    }
+                                                );
+                    }
+            }
+    }
+
+
+
+);
+
+
+
+
+
 
 
