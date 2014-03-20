@@ -217,7 +217,8 @@
   (prn "game" (@game-states id))
 
   (let [game (@game-states id)
-	rack (game :letters)]
+	rack (game :letters)
+        word (.toLowerCase word)]
 	(prn "game" game)
 	(prn "rack" rack)
 	(if (valid-word? word)
