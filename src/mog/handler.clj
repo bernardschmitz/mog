@@ -17,14 +17,15 @@
            (take 20 (sort-by :score > (conj @high-scores player))))))
 
 (def monsters [
-               { :name "Adolf Hitler" :hp 1000 }
-               { :name "Joseph Stalin" :hp 1000 }
-               { :name "Benito Mussolini" :hp 1000 }
-               { :name "Pol Pot" :hp 1000 }
-               { :name "Idi Amin" :hp 1000 }
-               { :name "Saddam Hussein" :hp 1000 }
-               { :name "Kim Il-sung" :hp 1000 }
+               { :name "Adolf Hitler" :hp 1000  }
+               { :name "Joseph Stalin" :hp 1000  }
+               { :name "Benito Mussolini" :hp 1000  }
+               { :name "Pol Pot" :hp 1000  }
+               { :name "Idi Amin" :hp 1000  }
+               { :name "Saddam Hussein" :hp 1000  }
+               { :name "Kim Il-sung" :hp 1000  }
                ])
+
 
 
 (def game-id (ref 1000))
@@ -149,7 +150,34 @@
     (for [x (range 2 (inc n))] 
       (find-word x dict rack))))
 
+(defn all-words [dict rack]
+   (seq (find-words (count rack) dict rack)))
 
+(defn random-word [dict rack]
+   (rand-nth (all-words dict rack)))
+
+(defn longest-word [dict rack]
+  (first (reverse (sort-by count (all-words dict rack)))))
+
+(defn best-word [dict rack]
+  (first (reverse (sort-by score-word (all-words dict rack)))))
+
+(defn worst-word [dict rack]
+  (first (sort-by count (all-words dict rack))))
+
+(defn shortest-word [dict rack]
+  (first (sort-by score-word (all-words dict rack))))
+
+
+(def monster-word-gen {
+                 "Adolf Hitler"  best-word
+                 "Joseph Stalin"   longest-word
+                 "Benito Mussolini"   random-word
+                 "Pol Pot"    shortest-word
+                 "Idi Amin"  random-word
+                 "Saddam Hussein"  worst-word
+                 "Kim Il-sung"  random-word
+               })
 
 
 (defn start-game [{{:keys [name] :as params} :params :as req}]
@@ -249,9 +277,9 @@
         rack (game :letters)]
     (prn "game" game)
     (prn "rack" rack)
-    (let [words (find-words (count rack) dict rack)
-          word  (rand-nth (seq words))]
-      (prn "words" words)
+    ;(let [word  (rand-nth (seq (find-words (count rack) dict rack)))]
+    (let [word-gen (monster-word-gen ((game :monster) :name))
+          word   (word-gen dict rack)]
       (prn "word" word)
 
       (let [g (monster-play-word game word)]
