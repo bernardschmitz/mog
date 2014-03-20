@@ -17,7 +17,13 @@
            (take 20 (sort-by :score > (conj @high-scores player))))))
 
 (def monsters [
-               { :name "Hitler" :hp 1000 }
+               { :name "Adolf Hitler" :hp 1000 }
+               { :name "Joseph Stalin" :hp 1000 }
+               { :name "Benito Mussolini" :hp 1000 }
+               { :name "Pol Pot" :hp 1000 }
+               { :name "Idi Amin" :hp 1000 }
+               { :name "Saddam Hussein" :hp 1000 }
+               { :name "Kim Il-sung" :hp 1000 }
                ])
 
 
