@@ -52,7 +52,10 @@
 (def vowels [ \a \e \i \o \u ])
 (def consonants (difference (set letters) (seq vowels)))
 
-(def letter-scores { \a 1 \b 3 \c 3 \d 2 \e 1 \f 4 \g 2 \h 4 \i 1 \j 8 \k 5 \l 1 \m 3 \n 1 \o 1 \p 3 \q 10 \r 1 \s 1 \t 1 \u 1 \v 4 \w 4 \x 8 \y 4 \z 10 })
+;(def letter-scores { \a 1 \b 3 \c 3 \d 2 \e 1 \f 4 \g 2 \h 4 \i 1 \j 8 \k 5 \l 1 \m 3 \n 1 \o 1 \p 3 \q 10 \r 1 \s 1 \t 1 \u 1 \v 4 \w 4 \x 8 \y 4 \z 10 })
+(def letter-scores { \a 1 \e 1 \h 1 \i 1 \n 1 \o 1 \r 1 \s 1 \t 1
+                     \b 2 \c 2 \d 2 \f 2 \g 2 \l 2 \m 2 \p 2 \u 2 \w 2 \y 2
+                     \j 3 \k 3 \q 3 \x 3 \z 3 })
 
 (def letter-pool (concat
   (repeat 9 \a) (repeat 2 \b) (repeat 2 \c) (repeat 4 \d) (repeat 12 \e) (repeat 2 \f) (repeat 3 \g)
@@ -76,15 +79,46 @@
 
 
 (defn score-word [word]
-   (reduce + (map letter-scores word)))
+  (* (count word) (reduce * (map letter-scores word))))
 
 
 (defn valid-word? [word]
   (some #(= word %) words))
 
 
+(defn random-letter []
+  (let [k (rand)]
+    (cond 
+     (< k 0.1270) \e
+     (< k 0.2176) \t
+     (< k 0.2993) \a
+     (< k 0.3743) \o
+     (< k 0.4440) \i
+     (< k 0.5115) \n
+     (< k 0.5747) \s
+     (< k 0.6357) \h
+     (< k 0.6956) \r
+     (< k 0.7381) \d
+     (< k 0.7783) \l
+     (< k 0.8062) \c
+     (< k 0.8337) \u
+     (< k 0.8578) \m
+     (< k 0.8814) \w
+     (< k 0.9037) \f
+     (< k 0.9238) \g
+     (< k 0.9436) \y
+     (< k 0.9629) \p
+     (< k 0.9778) \b
+     (< k 0.9876) \v
+     (< k 0.9953) \k
+     (< k 0.9968) \j
+     (< k 0.9983) \x
+     (< k 0.9993) \q
+     (< k 0.1000) \z)
+    ))
+
 (defn random-letters [] 
-  (map str (take 20 (shuffle letter-pool))))
+  (map str (for [_ (range 0 20)] (random-letter))))
 
 
 (defn remove-letter-from-rack [rack letter]
