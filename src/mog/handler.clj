@@ -19,6 +19,17 @@
 (def monsters [
                 { :name "Satan Cocker" :title "Legendary Rooster From Hell" :hp 1000 :attack "clucks" }
                 { :name "Ouroboros" :title "The Infinite Coil" :hp 1000 :attack "hisses" }
+                { :name "Asterion" :title "Cursed Scion Of Minos" :hp 1000 :attack "moos" }
+                { :name "Callisto" :title "Queen Of The Woods" :hp 1000 :attack "growls" }
+                { :name "Frog" :title "Frenzied Servant Of Magog" :hp 1000 :attack "croaks" }
+                { :name "Serpentarius" :title "The Forgotten Zodiac" :hp 1000 :attack "roars" }
+                { :name "Wendigo" :title "Endless Storm" :hp 1000 :attack "screams" }
+                { :name "Behemoth" :title "The Walking Earthquake" :hp 1000 :attack "trumpets" }
+                { :name "Leviathan" :title "The Evil Beneath The Waves" :hp 1000 :attack "bubbles" }
+                { :name "Eohippus" :title "The Abandoned Prototype" :hp 1000 :attack "neighs" }
+                { :name "Kron-Pirr" :title "The Last Of The Anunnaki" :hp 1000 :attack "whispers" }
+                { :name "Kord" :title "The Living Extension" :hp 1000 :attack "utters" }
+                { :name "Titanosaur" :title "The Ancient Lizard King" :hp 1000 :attack "roars" }
                ])
 
 
