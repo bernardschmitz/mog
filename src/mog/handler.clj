@@ -57,6 +57,16 @@
                      \b 2 \c 2 \d 2 \f 2 \g 2 \l 2 \m 2 \p 2 \u 2 \w 2 \y 2
                      \v 3 \j 3 \k 3 \q 3 \x 3 \z 3 })
 
+
+(def score-letters {
+                    1 (for [[k v] letter-scores :when (= 1 v)] k)
+                    2 (for [[k v] letter-scores :when (= 2 v)] k)
+                    3 (for [[k v] letter-scores :when (= 3 v)] k)
+                    })
+
+
+
+
 (def letter-pool (concat
   (repeat 9 \a) (repeat 2 \b) (repeat 2 \c) (repeat 4 \d) (repeat 12 \e) (repeat 2 \f) (repeat 3 \g)
   (repeat 2 \h) (repeat 9 \i) (repeat 1 \j) (repeat 1 \k) (repeat 4 \l) (repeat 2 \m) (repeat 6 \n)
@@ -117,7 +127,18 @@
      (< k 0.1000) \z)
     ))
 
+
+;(defn random-letter [x y z]
+;  (let [q (- 20 x y z)]
+;    (concat 
+;     (for [_ (range x) ] (rand-nth (score-letters 1)))
+;     (for [_ (range y) ] (rand-nth (score-letters 2)))
+;     (for [_ (range z) ] (rand-nth (score-letters 3)))
+;     (for [_ (range q) ] (rand-nth (keys letter-scores))))))
+
+
 (defn random-letters [] 
+;  (map str (random-letter 7 5 3)))
   (map str (for [_ (range 0 20)] (random-letter))))
 
 
