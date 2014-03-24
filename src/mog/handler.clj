@@ -17,13 +17,8 @@
            (take 20 (sort-by :score > (conj @high-scores player))))))
 
 (def monsters [
-               { :name "Adolf Hitler" :hp 1000  }
-               { :name "Joseph Stalin" :hp 1000  }
-               { :name "Benito Mussolini" :hp 1000  }
-               { :name "Pol Pot" :hp 1000  }
-               { :name "Idi Amin" :hp 1000  }
-               { :name "Saddam Hussein" :hp 1000  }
-               { :name "Kim Il-sung" :hp 1000  }
+                { :name "Satan Cocker" :title "Legendary Rooster From Hell" :hp 1000 :attack "clucks" }
+                { :name "Ouroboros" :title "The Infinite Coil" :hp 1000 :attack "hisses" }
                ])
 
 
@@ -40,10 +35,12 @@
 (def game-states (ref {}))
 
 
-(defn make-new-game [name] 
+(defn make-new-game [] 
   {
     :player {
-      :name name :hp 100 :score 0
+      :name "Noah" 
+      :title "Immortal Zookeeper"
+      :hp 1000 :score 0
     }
   })
 
@@ -224,15 +221,8 @@
   (first (sort-by score-word (all-words dict rack))))
 
 
-(def monster-word-gen {
-                 "Adolf Hitler"  best-word
-                 "Joseph Stalin"   longest-word
-                 "Benito Mussolini"   random-word
-                 "Pol Pot"    shortest-word
-                 "Idi Amin"  random-word
-                 "Saddam Hussein"  worst-word
-                 "Kim Il-sung"  random-word
-               })
+(defn monster-word-gen [name]
+  best-word)
 
 
 (defn start-game [{{:keys [name] :as params} :params :as req}]
@@ -241,7 +231,7 @@
   (prn "name" name)
 	(prn "gs" @game-states)
 
-  (let [game (make-new-game name)
+  (let [game (make-new-game)
     	id (dosync (let [id (next-game-id)] (ref-set game-states (assoc @game-states id game)) id))]
 	(response (assoc game :gameId id :highScore (top-score) ))))
 

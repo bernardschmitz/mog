@@ -44,6 +44,7 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 
 			gameState.player = {};
 			gameState.player.name = data.player.name;
+			gameState.player.title = data.player.title;
 			gameState.player.hp = data.player.hp;
 			gameState.player.score = data.player.score;
 
@@ -78,11 +79,13 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 
 			gameState.player = {};
 			gameState.player.name = data.player.name;
+			gameState.player.title = data.player.title;
 			gameState.player.hp = data.player.hp;
 			gameState.player.score = data.player.score;
 
 			gameState.monster = {};
 			gameState.monster.name = data.monster.name;
+			gameState.monster.title = data.monster.title;
 			gameState.monster.hp = data.monster.hp;
 
 			gameState.letters = data.letters;
