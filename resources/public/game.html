@@ -27,7 +27,7 @@
 	Letters:
 </div>
 	<div class="col-xs-11">
-	<span ng-repeat="letter in letters track by $index | orderBy:'toString()' " style="font-size:large;">{{letter | uppercase }}</span>
+	<span ng-repeat="letter in letters | orderBy:'toString()' track by $index  " style="font-size:large;">{{letter | uppercase }}</span>
 </div>
 
 	</div>
@@ -40,12 +40,16 @@
 <div class="row">
   <div class="col-xs-1">Word:</div> 
   <div class="col-xs-5">
+<form role="form">
+  <div class="form-group">
     <div class="input-group input-group-sm">
       <input type="text" class="form-control" ng-model="player.word" id="word">
       <span class="input-group-btn">
-        <button class="btn btn-default" type="button" ng-click="playerAttack($event)">Attack!</button>
+        <button class="btn btn-default" type="submit" ng-click="playerAttack($event)">Attack!</button>
       </span>
     </div>
+</div>
+</form>
   </div>
 </div>
 
