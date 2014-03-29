@@ -1,9 +1,11 @@
 
 (ns mog.handler
-  (:use compojure.core hiccup.core clojure.set ring.util.response)
+  (:use compojure.core hiccup.core ring.util.response)
   (:require [compojure.handler :as handler]
             [ring.middleware.json :as json]
             [compojure.route :as route]
+            [clojure.string :as string]
+            [clojure.set :as set]
             [clojure.java.io :as io]))
 
 
@@ -98,6 +100,12 @@
 
 (defn score-word [word]
   (* (count word) (reduce * (map letter-scores word))))
+
+(defn square [x]
+  (* x x))
+
+(defn score-free-attack [word] 
+  (square (reduce * (map letter-scores word))))
 
 
 (defn valid-word? [word]
@@ -204,12 +212,12 @@
 
 
 (defn find-word [n dict rack]
-  (reduce union
+  (reduce set/union
     (filter (complement nil?) (map #(dict (apply str (sort %))) (subsets n rack)))))
 
 
 (defn find-words [n dict rack]
-  (reduce union 
+  (reduce set/union 
     (for [x (range 2 (inc n))] 
       (find-word x dict rack))))
 
@@ -280,17 +288,69 @@
   (let [hp (m :hp)]
     (assoc m :hp (- hp damage))))
 
+(defn add-info [{info :info :as game} message]
+  (assoc game :info (conj info message)))
 
-(defn player-play-word [{rack :letters player :player monster :monster info :info :as game} word]
+(defn update-letters [game letters]
+  (assoc game :letters letters))
+
+(defn update-player [game player]
+  (assoc game :player player))
+
+(defn update-monster [game monster]
+  (assoc game :monster monster))
+
+(defn no-more-words? [dict rack]
+  (prn "rack " rack)
+  (let [words (all-words dict rack)]
+    (prn "remaining words " words)
+    (empty? words)))
+
+(defn free-attack [{rack :letters :as game} us-key them-key]
+    (let [them (game them-key)
+          us (game us-key)
+          word (string/join rack)
+          points (score-free-attack word)
+          rack (remove-word-from-rack rack word)]
+      (prn us)
+      (prn them)
+      (prn word)
+      (prn points)
+      (prn rack)
+      (-> (assoc game them-key (apply-damage them points))
+        (update-letters rack)
+        (add-info (format "%s hits %s with remaining letters '%s' for %d damage." (us :name) (them :name) word points)))))
+
+
+
+(defn check-round-end [game us them]
+  (let [rack (game :letters)]
+      (if (no-more-words? dict rack)
+        (-> (assoc game :round-end true)
+            (free-attack us them))
+        (assoc game :round-end false))))
+
+
+(defn player-play-word [{rack :letters player :player monster :monster :as game} word]
   (let [points (score-word word)
         rack (remove-word-from-rack rack word)]
-   (prn word "in rack")
 
+   (prn word "in rack")
    (prn game)
    (prn rack)
 
-   (assoc game :letters rack :player (add-points player points) :monster (apply-damage monster points)
-         :info (conj info (format "%s speaks '%s' and hits %s for %d damage." (player :name) word (monster :name) points)))))
+    (-> (update-letters game rack)
+        (update-player (add-points player points))
+        (update-monster (apply-damage monster points))
+        (add-info (format "%s speaks '%s' and hits %s for %d damage." (player :name) word (monster :name) points)))))
+
+
+;   (assoc game :letters rack :player (add-points player points) :monster (apply-damage monster points)
+;         :info (conj info (format "%s speaks '%s' and hits %s for %d damage." (player :name) word (monster :name) points)))))
+
+
+(defn update-game [id game]
+  (dosync (ref-set game-states (assoc @game-states id game)) game))
 
 
 (defn player-attack [{{id :gameId word :word :as params} :params :as req}]
@@ -302,16 +362,17 @@
 
   (let [game (@game-states id)
 	rack (game :letters)
-        word (.toLowerCase word)]
+        word (string/lower-case word)]
 	(prn "game" game)
 	(prn "rack" rack)
 	(if (valid-word? word)
 	    (if (word-in-rack? rack word)
-                (let [g (player-play-word game word)]
-                  (response 
-                    (dosync (ref-set game-states (assoc @game-states id g)) g)))
+                (let [g (-> (player-play-word game word) (check-round-end :player :monster))]
+                  (response (update-game id g)))
                 (response { :error "word not in letters" }))
             (response { :error "invalid word" }))))
+
+
 
 (defn monster-play-word [{rack :letters player :player monster :monster info :info :as game} word]
   (let [points (score-word word)
@@ -320,9 +381,10 @@
    (prn "game" game)
    (prn "rack" rack)
    (prn "points" points)
-   
-   (assoc game :letters rack :player (apply-damage player points)
-          :info (conj info (format "%s %s '%s' and hits %s for %d damage." (monster :name) (monster :attack) word (player :name) points)))))
+
+    (-> (update-letters game rack)
+        (update-player (apply-damage player points))
+        (add-info (format "%s %s '%s' and hits %s for %d damage." (monster :name) (monster :attack) word (player :name) points)))))
 
 
 
@@ -338,9 +400,8 @@
           word   (word-gen dict rack)]
       (prn "word" word)
 
-      (let [g (monster-play-word game word)]
-        (response
-         (dosync (ref-set game-states (assoc @game-states id g)) g))))))
+      (let [g (-> (monster-play-word game word) (check-round-end :monster :player))]
+        (response (update-game id g))))))
 
 
 (defroutes app-routes
