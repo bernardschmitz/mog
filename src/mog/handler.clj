@@ -279,7 +279,9 @@
                    game 
                    :monster monster :letters letters :highScore high-score :initiative initiative :info info))))
 	(response (@game-states id))))
-	  
+
+
+
 (defn add-points [m points]
   (let [score (m :score)]
     (assoc m :score (+ score points))))
@@ -293,6 +295,12 @@
 
 (defn update-letters [game letters]
   (assoc game :letters letters))
+
+(defn replenish-letters [{rack :letters :as game}]
+  (if (empty? rack)
+    (-> (update-letters game (random-letters))
+        (add-info "new letters appear"))
+    game))
 
 (defn update-player [game player]
   (assoc game :player player))
@@ -323,12 +331,11 @@
 
 
 
-(defn check-round-end [game us them]
+(defn check-words-remaining [game us them]
   (let [rack (game :letters)]
       (if (no-more-words? dict rack)
-        (-> (assoc game :round-end true)
-            (free-attack us them))
-        (assoc game :round-end false))))
+        (free-attack game us them)
+        game)))
 
 
 (defn player-play-word [{rack :letters player :player monster :monster :as game} word]
@@ -367,7 +374,7 @@
 	(prn "rack" rack)
 	(if (valid-word? word)
 	    (if (word-in-rack? rack word)
-                (let [g (-> (player-play-word game word) (check-round-end :player :monster))]
+                (let [g (-> (player-play-word game word) (check-words-remaining :player :monster) (replenish-letters))]
                   (response (update-game id g)))
                 (response { :error "word not in letters" }))
             (response { :error "invalid word" }))))
@@ -400,7 +407,7 @@
           word   (word-gen dict rack)]
       (prn "word" word)
 
-      (let [g (-> (monster-play-word game word) (check-round-end :monster :player))]
+      (let [g (-> (monster-play-word game word) (check-words-remaining :monster :player) (replenish-letters))]
         (response (update-game id g))))))
 
 
