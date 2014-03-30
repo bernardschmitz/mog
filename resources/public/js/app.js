@@ -254,6 +254,42 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
    $scope.start = function(event) {
        $location.path("/start");
    };
+   
+
+	$scope.monsterAttackCallback = 
+				     function(data) {
+					 console.log('monsterAttack callback');
+					 console.log(data);
+
+					 $scope.info = mogService.getInfo();
+					 $scope.letters = mogService.getLetters();
+					 $scope.player = mogService.getPlayer();
+
+					 };
+
+
+
+	$scope.playerAttackCallback = function(data) {
+			console.log('playerAttack callback');
+
+			console.log(data);
+
+			if(data.error) {
+				$scope.error = data.error;
+			}
+			else {
+				$scope.error = '';
+				$scope.player = mogService.getPlayer();
+				$scope.monster = mogService.getMonster();
+				$scope.letters = mogService.getLetters();
+				$scope.info = mogService.getInfo();
+
+			    mogService.monsterAttack(mogService.getGameId(), $scope.monsterAttackCallback);
+			    }
+		    };
+
+
+
  
 	$scope.playerAttack = function(event) {
 		console.log("playerAttack event");
@@ -261,36 +297,8 @@ var menagerieApp = angular.module('menagerieApp', ['ngRoute'])
 		if($scope.player && $scope.player.word) {
 			console.log('word '+$scope.player.word);
 
-			mogService.playerAttack(mogService.getGameId(), $scope.player.word, 
-				function(data) {
-					console.log('playerAttack callback');
+			mogService.playerAttack(mogService.getGameId(), $scope.player.word, $scope.playerAttackCallback);
 
-					console.log(data);
-
-					if(data.error) {
-						$scope.error = data.error;
-					}
-					else {
-						$scope.error = '';
-						$scope.player = mogService.getPlayer();
-						$scope.monster = mogService.getMonster();
-						$scope.letters = mogService.getLetters();
-						$scope.info = mogService.getInfo();
-
-                                            mogService.monsterAttack(mogService.getGameId(), 
-                                                                     function(data) {
-                                                                         console.log('monsterAttack callback');
-                                                                         console.log(data);
-
-                                                                         $scope.info = mogService.getInfo();
-                                                                         $scope.letters = mogService.getLetters();
-                                                                         $scope.player = mogService.getPlayer();
-
-                                                                         }
-                                                                     );
-                                            }
-                                    }
-                                                );
                     }
             }
     }
