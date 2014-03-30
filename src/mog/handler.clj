@@ -333,9 +333,11 @@
 
 (defn check-words-remaining [game us them]
   (let [rack (game :letters)]
-      (if (no-more-words? dict rack)
-        (free-attack game us them)
-        game)))
+    (if (empty? rack)
+        game
+        (if (no-more-words? dict rack)
+            (free-attack game us them)
+            game))))
 
 
 (defn player-play-word [{rack :letters player :player monster :monster :as game} word]
